@@ -64,7 +64,7 @@ export const filesToZipped = [
   },
   {
     prefix: '4392402_03012023',
-    last_indice: 20,
+    last_indice: 0,
     files: [
       '/var/www/public/temp/converted/4392402_03012023_48363938000100_1144786132_1.mp3',
     ],

@@ -6,8 +6,7 @@ import { filesToZipped, filesListBucket } from './filesBucket';
 // ===============================================================
 
 //-----------------------------------------------------------
-// const result = arrayFilesFiltered.reduce(function ( res, acc) {
-
+// const result = arrayFilesFiltered.reduce(function (res, acc) {
 //   const namefilezip = acc.split('_').slice(0, 2).join('_');
 
 //   if (!res[namefilezip]) {
@@ -18,10 +17,9 @@ import { filesToZipped, filesListBucket } from './filesBucket';
 
 //   res[namefilezip].files.push(acc);
 //   return res;
-// },
-// {});
+// }, {});
 
-// console.log(JSON.stringify(result, null, 4));
+// console.log(JSON.stringify(result, null, 3));
 
 //-----------------------------------------------------------
 // const result = arrayFilesFiltered.reduce(function (res, acc) {
@@ -50,7 +48,6 @@ import { filesToZipped, filesListBucket } from './filesBucket';
 let groupByFilesToZipped = filesToZipped.reduce((res, acc) => {
   if (!res[acc.prefix]) {
     res[acc.prefix] = [];
-
     res[acc.prefix].push({ prefix: acc.prefix, last_indice: 0 });
   }
 
@@ -59,10 +56,10 @@ let groupByFilesToZipped = filesToZipped.reduce((res, acc) => {
 
 groupByFilesToZipped = Object.values(groupByFilesToZipped).flat();
 console.log('groupByFilesToZipped', groupByFilesToZipped);
-console.log(
-  'groupByFilesToZipped',
-  JSON.stringify(groupByFilesToZipped, null, 2)
-);
+// console.log(
+//   'groupByFilesToZipped',
+//   JSON.stringify(groupByFilesToZipped, null, 2)
+// );
 
 /* // groupByFilesToZipped
   [
@@ -78,27 +75,76 @@ console.log(
 
 */
 
-//----- [02]  verificar o maximo no buacket
+//############################ [02]  verificar o maximo no buacket
 
-const Key = '2023/01/03/ged_fixa_/301599_03012023_FIXA_3.zip';
-console.log('opa2', Key.lastIndexOf('/' + '301599_03012023' + '_'));
+//----------------------------  evolução 1
+// const Key = '2023/01/03/ged_fixa_/301599_03012023_FIXA_3.zip';
+// console.log('opa2', Key.lastIndexOf('/' + '301599_03012023' + '_'));
 
-let index = 0;
+// let index = 0;
 
-if (Array.isArray(filesListBucket) && filesListBucket.length > 0) {
-  const numMax = filesListBucket.map(({ Key }) => {
-    const namefilezip = Key.indexOf('/' + '301599_03012023' + '_');
+// if (Array.isArray(filesListBucket) && filesListBucket.length > 0) {
+//   const numMax = filesListBucket.map(({ Key }) => {
+//     const namefilezip = Key.indexOf('/' + '301599_03012023' + '_');
 
-    if (namefilezip > 0) {
-      console.log('namefilezip 2', namefilezip);
-      return Number(Key.replace(/^.*[_]/, '').replace('.zip', ''));
-    }
+//     if (namefilezip > 0) {
+//       return Number(Key.replace(/^.*[_]/, '').replace('.zip', ''));
+//     }
 
-    return '';
-  });
-  index = Math.max(...numMax);
+//     return '';
+//   });
+//   index = Math.max(...numMax);
+// }
+
+// console.log('index', index);
+
+//----------------------------  evolução 2
+
+for (const [idx, item] of groupByFilesToZipped.entries()) {
+  let index = 0;
+
+  if (Array.isArray(filesListBucket) && filesListBucket.length > 0) {
+    const numMax = filesListBucket.map(({ Key }) => {
+      const namefilezip = Key.indexOf('/' + item.prefix + '_');
+
+      if (namefilezip > 0) {
+        return Number(Key.replace(/^.*[_]/, '').replace('.zip', ''));
+      }
+
+      return '';
+    });
+
+    index = Math.max(...numMax);
+    groupByFilesToZipped[idx].last_indice = index;
+  }
 }
 
-console.log('index', index);
+/* groupByFilesToZipped -> com maximo
+  [
+    {
+      prefix: '301599_03012023',
+      last_indice: 12,
+    },
+    {
+      prefix: '4392402_03012023',
+      last_indice: 4,
+    },
+  ];
+*/
 
-//----- [03] incrementar com  maximo ops proximos nos prefixos
+console.log('groupByFilesToZipped', groupByFilesToZipped);
+
+//----- [03] incrementar com  maximo nos proximos
+
+let mapFilesZipped = filesToZipped.map((item, idx) => {
+  for (const gfz of groupByFilesToZipped) {
+    if (item.prefix === gfz.prefix) {
+      item.last_indice = gfz.last_indice++ + 1;
+      return item;
+    }
+  }
+
+  // console.log(idx, item);
+});
+
+console.log('mapFilesZipped', mapFilesZipped);
